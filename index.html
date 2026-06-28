@@ -854,11 +854,11 @@ function initAuth(){
   if(g) g.innerHTML=AVATARS.map((a,i)=>`<button class="av-btn" id="rav${i}" onclick="pickRegAv('${a}',${i})">${a}</button>`).join('');
   const sg=document.getElementById('setAvGrid');
   if(sg) sg.innerHTML=AVATARS.map((a,i)=>`<button class="set-av" id="sav${i}" onclick="pickSetAv('${a}',${i})">${a}</button>`).join('');
-  // Pre-fill saved name but ALWAYS show login — user must tap PIN
-  const saved=loadAccount();
-  if(saved){
+  // Pre-fill name from session
+  const session=loadSession();
+  if(session){
     const ln=document.getElementById('loginName');
-    if(ln) ln.value=saved.name;
+    if(ln) ln.value=session;
   }
 }
 
@@ -878,15 +878,29 @@ function checkRegReady(){
   document.getElementById('regBtn').disabled=!(document.getElementById('regName').value.trim()&&rPin.length===4&&selectedRegAv);
 }
 
-function doRegister(){
+async function doRegister(){
   const n=document.getElementById('regName').value.trim();
   const p=rPin;
-  if(!n||p.length!==4||!selectedRegAv)return;
-  // Check if name taken (in this demo just save)
-  acct={name:n,pin:p,avatar:selectedRegAv,xp:0,level:1,wins:0,losses:0};
-  saveAccount();
-  showToast('Account created! Welcome '+n+'! ⚽');
-  goLobbyFromLogin();
+  if(!n||p.length!==4||!selectedRegAv){ showToast('Fill in all fields!'); return; }
+
+  if(!window.db){
+    // Offline fallback
+    acct={name:n,pin:p,avatar:selectedRegAv,role:'player',xp:0,level:1,wins:0,losses:0,score:0};
+    showToast('✅ Account created (offline)! Welcome '+n+'! ⚽');
+    goLobbyFromLogin(); return;
+  }
+
+  showToast('Checking username...');
+  try {
+    const existing = await loadAccountFromFirestore(n);
+    if(existing){ showToast('❌ Username "'+n+'" taken! Try another.'); return; }
+    acct={name:n,pin:p,avatar:selectedRegAv,role:'player',xp:0,level:1,wins:0,losses:0,score:0};
+    await saveAccount();
+    showToast('✅ Account created! Welcome '+n+'! ⚽');
+    goLobbyFromLogin();
+  } catch(e){
+    showToast('❌ Error: '+e.message);
+  }
 }
 
 function skipLogin(){
@@ -896,28 +910,30 @@ function skipLogin(){
 
 async function doLogin(){
   const n=document.getElementById('loginName').value.trim();
-  const p=loginPinVal;
+  const p=lPin;
   if(!n){ showToast('Enter your name!'); return; }
-  if(p.length!==4){ showToast('Enter your 4-digit PIN!'); return; }
-  if(!window.db){ showToast('⚠️ No internet connection!'); return; }
+  if(p.length!==4){ showToast('Enter 4-digit PIN!'); return; }
+
+  // No Firebase? use offline demo
+  if(!window.db){
+    acct={name:n||'Player',pin:p,avatar:'⚽',role:'player',xp:0,level:1,wins:0,losses:0,score:0};
+    showToast('✅ Offline mode — Welcome '+n+'!');
+    goLobbyFromLogin(); return;
+  }
 
   showToast('Logging in...');
-  const data = await loadAccountFromFirestore(n);
-  if(!data){ showToast('❌ Account not found! Please register.'); resetPinPads(); return; }
-  if(data.banned){ showToast('🚫 This account has been banned.'); return; }
-  if(data.pin !== p){ showToast('❌ Wrong PIN! Try again.'); resetPinPads(); return; }
-
-  // Login success
-  acct = {
-    name: data.username, pin: data.pin, avatar: data.avatar,
-    role: data.role || 'player', xp: data.xp || 0, level: data.level || 1,
-    wins: data.wins || 0, losses: data.losses || 0, score: data.score || 0
-  };
-  // Update lastLogin
-  await window.fsUpdateDoc(window.fsDoc(window.db,'users',n),{
-    lastLogin: window.fsServerTimestamp()
-  });
-  saveSession(n);
+  try {
+    const data = await loadAccountFromFirestore(n);
+    if(!data){ showToast('❌ Account not found! Register first.'); resetPins(); return; }
+    if(data.banned){ showToast('🚫 Account banned.'); return; }
+    if(data.pin !== p){ showToast('❌ Wrong PIN! Try again.'); resetPins(); return; }
+    acct = {
+      name: data.username, pin: data.pin, avatar: data.avatar||'⚽',
+      role: data.role||'player', xp: data.xp||0, level: data.level||1,
+      wins: data.wins||0, losses: data.losses||0, score: data.score||0
+    };
+    await window.fsUpdateDoc(window.fsDoc(window.db,'users',n),{lastLogin: window.fsServerTimestamp()});
+    saveSession(n);
   showToast('Welcome back, '+acct.name+'! ⚽');
   goLobbyFromLogin();
 }
