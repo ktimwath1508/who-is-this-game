@@ -265,6 +265,15 @@ body.theme-neon{--bg:#000;--card:#0a0a0a;--card2:#111;--border:#00ff88;--text:#0
 .cp-toast.on{opacity:1;}
 .notif-dot{width:7px;height:7px;border-radius:50%;background:var(--red);display:inline-block;margin-left:5px;animation:pd 1.5s infinite;}
 @keyframes pd{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+/* Generic buttons */
+.btn{width:100%;padding:12px;border-radius:12px;border:none;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:7px;margin-top:0;}
+.btn:active{transform:scale(0.96);}
+.btn-g{background:linear-gradient(135deg,var(--green),#00c853);color:#000;}
+.btn-b{background:linear-gradient(135deg,var(--blue),#0077cc);color:#fff;}
+.btn-gh{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-gh:hover{border-color:var(--text);color:var(--text);}
+
 </style>
 
   <!-- Firebase SDK -->
@@ -934,8 +943,12 @@ async function doLogin(){
     };
     await window.fsUpdateDoc(window.fsDoc(window.db,'users',n),{lastLogin: window.fsServerTimestamp()});
     saveSession(n);
-  showToast('Welcome back, '+acct.name+'! ⚽');
-  goLobbyFromLogin();
+    showToast('Welcome back, '+acct.name+'! ⚽');
+    goLobbyFromLogin();
+  } catch(e){
+    showToast('❌ Login error: '+e.message);
+    resetPins();
+  }
 }
 
 function goLobbyFromLogin(){
@@ -1372,8 +1385,289 @@ function oppAnswers(ans){
 }
 
 function oppAsksMe(){
-  const qi=Math.floor(Math.random()*QS.length),q=QS[qi];
+  const qi=Math.floor(Math.random()*QS.length), q=QS[qi];
   const ph=q.opts[Math.floor(Math.random()*q.opts.length)];
-  G.pendingQIdx=qi;G.pendingQText=ph;
+  G.pendingQIdx=qi; G.pendingQText=ph;
   document.getElementById('myYnQ').textContent=`${G.oppName} asks: "${ph}"`;
-  document.getElementById('myYnWho'
+  document.getElementById('myYnWho').textContent='Answer honestly — YES or NO!';
+  showOv('myYnOv');
+}
+
+async function iAnswer(ans){
+  closeOv('myYnOv');
+  showToast(`You answered: ${ans?'✅ YES':'❌ NO'}`);
+
+  if(G.mode==='online' && window.db && G.currentRoomCode){
+    try{
+      await window.fsUpdateDoc(window.fsDoc(window.db,'rooms',G.currentRoomCode),{
+        pendingAnswer: ans,
+        currentTurnUsername: acct.name,
+        updatedAt: window.fsServerTimestamp()
+      });
+    }catch(e){ showToast('❌ Answer sync failed: '+e.message); }
+    return;
+  }
+  G.myTurn=true; updateTurn(); renderBoard();
+}
+
+// Override room update with safer realtime flow
+function handleRoomUpdate(room){
+  const screen = document.querySelector('.screen.active')?.id;
+  if(room.player1Username===acct.name){
+    G.myPlayerNum=1; G.oppName=room.player2Username||'Opponent';
+  } else if(room.player2Username===acct.name){
+    G.myPlayerNum=2; G.oppName=room.player1Username||'Opponent';
+  }
+
+  if(screen==='waitScreen' && room.status==='picking' && G.myPlayerNum===1){
+    G.oppName = room.player2Username;
+    const p2 = document.getElementById('p2Av');
+    p2.textContent = room.player2Avatar || '⚽';
+    p2.classList.add('filled'); p2.style.background='#1a1a3a';
+    document.getElementById('p2Nm').textContent = room.player2Username;
+    document.getElementById('waitSpin').style.display='none';
+    showToast(room.player2Username+' joined! Pick your player ⚽');
+    setTimeout(()=> startPickOnline(room.boardPlayerIds), 600);
+  }
+
+  if(room.status==='playing' && screen==='pickScreen'){
+    const oppSecretId = G.myPlayerNum===1 ? room.player2SecretId : room.player1SecretId;
+    G.oppSecret = playerById(oppSecretId);
+    G.myTurn = room.currentTurnUsername === acct.name;
+    startGame();
+  }
+
+  if(room.status==='playing' && screen==='gameScreen'){
+    G.myTurn = room.currentTurnUsername === acct.name;
+    updateTurn();
+  }
+
+  if(room.status==='playing' && room.pendingQuestion && room.pendingQuestionBy !== acct.name){
+    const isOpen = document.getElementById('myYnOv').classList.contains('on');
+    if(document.querySelector('.screen.active')?.id==='gameScreen' && !isOpen){
+      document.getElementById('myYnQ').textContent = room.pendingQuestion;
+      document.getElementById('myYnWho').textContent = room.pendingQuestionBy+' asks — Answer honestly!';
+      G.pendingRoomQ = room.pendingQuestion;
+      showOv('myYnOv');
+    }
+  }
+
+  if(room.status==='playing' && room.pendingAnswer !== null && room.pendingQuestionBy === acct.name){
+    const ans = room.pendingAnswer;
+    if(G.pendingQIdx !== null) applyAns(QS[G.pendingQIdx], ans);
+    renderBoard();
+    showToast(G.oppName+': '+(ans?'✅ YES':'❌ NO'));
+    window.fsUpdateDoc(window.fsDoc(window.db,'rooms',G.currentRoomCode),{
+      pendingQuestion: null,
+      pendingQuestionBy: null,
+      pendingAnswer: null,
+      currentTurnUsername: G.oppName,
+      updatedAt: window.fsServerTimestamp()
+    }).catch(e=>console.error(e));
+    G.myTurn=false; updateTurn();
+  }
+
+  if(room.status==='finished' && document.getElementById('gameScreen').classList.contains('active')){
+    const won = room.winnerUsername === acct.name;
+    endGame(won, null, true);
+  }
+}
+
+function aiTurn(){
+  if(G.myTurn) return;
+  document.getElementById('aiBbl').classList.add('on');
+  setTimeout(()=>{
+    document.getElementById('aiBbl').classList.remove('on');
+    const rem=G.board.filter(p=>!G.aiElim.includes(p.id));
+    if(rem.length<=1){ aiGuess(rem[0]||G.board[0]); return; }
+    let bestQ=null,bestSplit=Infinity;
+    QS.forEach(q=>{
+      const yes=rem.filter(p=>chkAns(attrById(p.id),q)).length;
+      const split=Math.abs(yes-(rem.length-yes));
+      if(split<bestSplit){ bestSplit=split; bestQ=q; }
+    });
+    if(!bestQ){ G.myTurn=true; updateTurn(); return; }
+    const ans=chkAns(attrById(G.mySecret.id),bestQ);
+    G.board.forEach(p=>{
+      const m=chkAns(attrById(p.id),bestQ);
+      if(ans && !m && !G.aiElim.includes(p.id)) G.aiElim.push(p.id);
+      if(!ans && m && !G.aiElim.includes(p.id)) G.aiElim.push(p.id);
+    });
+    showToast(`🤖 asks: "${bestQ.opts[0]}" → You: ${ans?'✅ YES':'❌ NO'}`);
+    G.myTurn=true; updateTurn();
+  },1200);
+}
+
+function aiGuess(p){
+  const guessed = p || G.board[0];
+  setTimeout(()=>endGame(!(guessed && guessed.id===G.mySecret.id),guessed),500);
+}
+
+function openGuess(){
+  const rem=G.board.filter(p=>!G.elim.includes(p.id));
+  document.getElementById('guessGrid').innerHTML=rem.map(p=>`
+    <div class="gi" onclick="makeGuess(${p.id})">
+      ${photoEl(p,52,'gi-photo')}
+      <div class="gi-nm">${p.name}</div>
+      <div class="gi-nat">${p.nat}</div>
+    </div>`).join('');
+  showOv('guessOv');
+}
+
+async function makeGuess(id){
+  closeOv('guessOv');
+  const p=playerById(id);
+  const won = G.oppSecret && p.id===G.oppSecret.id;
+  if(G.mode==='online' && window.db && G.currentRoomCode){
+    try{
+      const winner = won ? acct.name : G.oppName;
+      await window.fsUpdateDoc(window.fsDoc(window.db,'rooms',G.currentRoomCode),{
+        status:'finished',
+        winnerUsername:winner,
+        finalGuessBy:acct.name,
+        finalGuessId:id,
+        finishedAt:window.fsServerTimestamp(),
+        updatedAt:window.fsServerTimestamp()
+      });
+      await saveMatch(winner);
+    }catch(e){ showToast('❌ Finish sync failed: '+e.message); }
+  }
+  endGame(won,p);
+}
+
+function applyAns(q,isYes){
+  G.board.forEach(p=>{
+    const m=chkAns(attrById(p.id),q);
+    if(isYes && !m && !G.elim.includes(p.id)) G.elim.push(p.id);
+    if(!isYes && m && !G.elim.includes(p.id)) G.elim.push(p.id);
+  });
+  if(G.oppSecret){
+    const i=G.elim.indexOf(G.oppSecret.id);
+    if(i!==-1) G.elim.splice(i,1);
+  }
+}
+
+function chkAns(attr,q){
+  if(!attr||!q) return false;
+  const v=attr[q.key];
+  return q.vals.some(x=>x===v);
+}
+
+let resultShown=false;
+async function endGame(won, guessed=null, fromRoom=false){
+  if(resultShown) return;
+  resultShown=true;
+  const my=G.mySecret || playerById(1);
+  const th=G.oppSecret || guessed || playerById(2);
+  document.getElementById('resTrophy').textContent=won?'🏆':'😢';
+  document.getElementById('resTitle').textContent=won?'YOU WIN!':'YOU LOSE!';
+  document.getElementById('resSub').textContent=won?`You got it! Their player was ${th.name}!`:`Their player was ${th.name}.`;
+  document.getElementById('rrMySlot').innerHTML=`${photoEl(my,52,'rr-photo')}<div class="rr-lbl">YOUR SECRET</div><div class="rr-nm">${my.name}</div>`;
+  document.getElementById('rrThSlot').innerHTML=`${photoEl(th,52,'rr-photo')}<div class="rr-lbl">THEIR SECRET</div><div class="rr-nm">${th.name}</div>`;
+  showScreen('resultScreen');
+  if(!fromRoom || (fromRoom && G.mode==='online')){
+    const r=await awardXP(won);
+    setTimeout(()=>showXPPopup(won,r.gain,r.leveledUp),500);
+  }
+}
+
+async function saveMatch(winner){
+  if(!window.db || !G.currentRoomCode) return;
+  const id=G.currentRoomCode+'_'+Date.now();
+  try{
+    await window.fsSetDoc(window.fsDoc(window.db,'matches',id),{
+      roomCode:G.currentRoomCode,
+      player1Username:G.myPlayerNum===1?acct.name:G.oppName,
+      player2Username:G.myPlayerNum===1?G.oppName:acct.name,
+      winnerUsername:winner,
+      loserUsername:winner===acct.name?G.oppName:acct.name,
+      player1SecretId:G.myPlayerNum===1?G.mySecret?.id:G.oppSecret?.id,
+      player2SecretId:G.myPlayerNum===1?G.oppSecret?.id:G.mySecret?.id,
+      createdAt:window.fsServerTimestamp(),
+      finishedAt:window.fsServerTimestamp()
+    });
+  }catch(e){ console.error(e); }
+}
+
+function playAgain(){
+  resultShown=false;
+  if(G.mode==='ai') startPick();
+  else showScreen('lobbyScreen');
+}
+
+async function openLeaderboard(){
+  const c=document.getElementById('lbContent');
+  c.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);">Loading...</div>';
+  showOv('lbOv');
+  if(!window.db){ c.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);">No connection.</div>'; return; }
+  try{
+    const q=window.fsQuery(window.fsCollection(window.db,'users'),window.fsOrderBy('score','desc'),window.fsLimit(20));
+    const snap=await window.fsGetDocs(q);
+    if(snap.empty){ c.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);">No players yet.</div>'; return; }
+    let rank=0;
+    c.innerHTML=snap.docs.map(d=>{
+      const u=d.data(); rank++;
+      const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'#'+rank;
+      return `<div class="mail-item" style="display:flex;align-items:center;gap:10px;">
+        <div style="width:34px;text-align:center;font-family:'Bebas Neue',sans-serif;color:var(--gold);">${medal}</div>
+        <div class="mi-av" style="background:rgba(255,215,0,.1);">${u.avatar||'⚽'}</div>
+        <div style="flex:1;"><div class="mi-name">${u.nickname||u.username}</div><div class="mi-type">${u.wins||0}W • ${u.losses||0}L • LVL ${u.level||1}</div></div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--gold);">${u.score||0}</div>
+      </div>`;
+    }).join('');
+  }catch(e){ c.innerHTML='<div style="color:var(--red);padding:20px;text-align:center;">Leaderboard error: '+e.message+'</div>'; }
+}
+
+function doLogout(){
+  clearSession();
+  if(roomUnsubscribe){ roomUnsubscribe(); roomUnsubscribe=null; }
+  acct={name:'',pin:'',avatar:'⚽',xp:0,level:1,wins:0,losses:0,score:0};
+  resetPins();
+  closeOv('settingsOv');
+  showScreen('authScreen');
+  showToast('Logged out');
+}
+
+function copyLink(){
+  const txt=document.getElementById('shareLink').textContent;
+  navigator.clipboard?.writeText(txt).catch(()=>{});
+  const t=document.getElementById('cpToast');
+  t.textContent='ROOM CODE COPIED! ✓';
+  t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),1600);
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById(id);
+  if(el) el.classList.add('active');
+}
+function showOv(id){ const el=document.getElementById(id); if(el) el.classList.add('on'); }
+function closeOv(id){ const el=document.getElementById(id); if(el) el.classList.remove('on'); }
+
+let toastTimer=null;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  if(!t) return alert(msg);
+  t.textContent=msg; t.classList.add('on');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('on'),2600);
+}
+
+// ── BOOT ──────────────────────────────────────────
+function boot(){
+  initAuth();
+  const session=loadSession();
+  if(session && window.db){
+    loadAccountFromFirestore(session).then(data=>{
+      if(data && !data.banned){
+        acct={name:data.username,pin:data.pin,avatar:data.avatar||'⚽',role:data.role||'player',xp:data.xp||0,level:data.level||1,wins:data.wins||0,losses:data.losses||0,score:data.score||0};
+        goLobbyFromLogin();
+      }
+    }).catch(()=>{});
+  }
+}
+
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot);
+else boot();
+</script>
+</body>
+</html>
