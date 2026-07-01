@@ -25,6 +25,19 @@ body{min-height:100vh;background:var(--bg);color:var(--text);font-family:Inter,s
 .custom-row{display:flex;gap:8px;margin:7px 0 10px}.custom-row input{margin:0}.custom-row .btn{width:auto;padding:0 15px}
 /* custom Q note */
 .ai-custom-warning{display:none}
+/* friend row */
+.friend-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:13px;margin-bottom:7px}
+.friend-av{width:38px;height:38px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.friend-av.online-av{border-color:var(--green)}
+.online-dot{width:9px;height:9px;border-radius:50%;background:var(--green);margin-left:2px;flex-shrink:0;box-shadow:0 0 6px #00e676}
+.offline-dot{width:9px;height:9px;border-radius:50%;background:var(--muted);margin-left:2px;flex-shrink:0}
+.friend-name{font-family:'Bebas Neue';font-size:17px;letter-spacing:1px;flex:1}
+.friend-status{font-size:11px;color:var(--muted)}
+.req-row{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--soft);border:1px solid var(--border);border-radius:12px;margin-bottom:7px}
+.mini-btn{border:0;border-radius:8px;padding:6px 12px;font-family:'Bebas Neue';font-size:13px;cursor:pointer}
+.mini-g{background:var(--green);color:#000}
+.mini-r{background:rgba(255,68,68,.15);border:1px solid var(--red);color:var(--red)}
+.search-result{padding:10px 12px;background:var(--soft);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;gap:10px;margin-bottom:4px}
 /* elim suggestion banner */
 .elim-banner{background:linear-gradient(135deg,#1a0a00,#220e00);border:1px solid #ff950066;border-radius:12px;padding:11px 14px;margin-bottom:8px;font-size:13px;color:var(--orange);display:none;align-items:center;gap:10px}
 .elim-banner.on{display:flex}
@@ -53,7 +66,7 @@ const app=initializeApp(firebaseConfig); const db=getFirestore(app); Object.assi
 <body>
 <section class="screen active" id="authScreen"><div class="wrap"><div class="logo-badge">🧩 <span data-i18n="multicat">MULTI-CATEGORY EDITION</span></div><div class="logo-title">WHO IS<br>THIS?</div><div class="logo-sub" data-i18n="logoSub">GUESS THE SECRET CARD • ELIMINATE • WIN</div><div class="card" id="loginCard"><div class="title" style="margin-bottom:12px" data-i18n="welcomeBack">WELCOME BACK</div><div class="small-title" data-i18n="username">USERNAME</div><input class="input" id="loginName" placeholder="e.g. ton01" autocomplete="off"><div class="small-title" data-i18n="pinCode">PIN CODE</div><div class="pin-display" id="loginDots"></div><div class="pin-pad" id="loginPad"></div><button class="btn btn-g" onclick="doLogin()">&#9654; <span data-i18n="login">LOGIN</span></button><div class="switch"><span data-i18n="noAccount">No account?</span> <span onclick="switchAuth('register')" data-i18n="registerHere">REGISTER HERE</span></div></div><div class="card hidden" id="registerCard"><div class="title" style="margin-bottom:12px" data-i18n="createAccount">CREATE ACCOUNT</div><div class="small-title" data-i18n="pickIcon">PICK ICON</div><div class="avatar-grid" id="regAvGrid"></div><div class="small-title" data-i18n="username">USERNAME</div><input class="input" id="regName" data-i18n-placeholder="usernamePlaceholder" placeholder="Choose username" maxlength="16" oninput="checkRegReady()"><div class="small-title" data-i18n="setPin">SET 4-DIGIT PIN</div><div class="pin-display" id="regDots"></div><div class="pin-pad" id="regPad"></div><button class="btn btn-g" id="regBtn" onclick="doRegister()" disabled><span data-i18n="createAccount">CREATE ACCOUNT</span> &#8594;</button><div class="switch"><span data-i18n="haveAccount">Have account?</span> <span onclick="switchAuth('login')" data-i18n="loginHere">LOGIN HERE</span></div></div></div></section>
 
-<section class="screen" id="lobbyScreen"><div class="wrap"><div class="topbar"><div style="font-family:'Bebas Neue';letter-spacing:2px;color:var(--muted)">WHO IS THIS?</div><div class="row" style="width:auto"><button class="icon-btn" onclick="openSettings()">&#9881;&#65039;</button><button class="icon-btn hidden" id="adminIcon" onclick="openAdmin()">&#128737;&#65039;</button></div></div><div class="card user-card"><div class="user-av" id="ubAv">&#9917;</div><div><div class="user-name" id="ubName">PLAYER</div><div class="user-sub" id="ubSub"></div></div><div class="level" id="levelBadge">&#11088; LVL 1</div></div><div class="xp-info"><span id="xpLabel">0 / 100 XP</span><span id="xpNext"></span></div><div class="xp-bar"><div class="xp-fill" id="xpFill" style="width:0%"></div></div><div class="home-title">WHO IS THIS?</div><div class="home-sub">&#9917; FOOTBALLERS EDITION</div><div class="menu" style="margin-top:16px"><div class="menu-btn green" onclick="openRoomOptions()"><div class="menu-icon">&#128279;</div><div class="menu-body"><div class="menu-title" data-i18n="menuPlayFriend">PLAY WITH FRIEND</div><div class="menu-sub" data-i18n="menuPlayFriendSub">Create or join a real room</div></div><div class="menu-arrow">&#8250;</div></div><div class="menu-btn gold" onclick="startVsAI()"><div class="menu-icon">&#129302;</div><div class="menu-body"><div class="menu-title" data-i18n="menuPlayAI">PLAY VS COMPUTER</div><div class="menu-sub" data-i18n="menuPlayAISub">Solo practice match</div></div><div class="menu-arrow">&#8250;</div></div><div class="menu-btn blue" onclick="openLeaderboard()"><div class="menu-icon">&#127885;</div><div class="menu-body"><div class="menu-title" data-i18n="menuLeader">LEADERBOARD</div><div class="menu-sub" data-i18n="menuLeaderSub">Top players by score</div></div><div class="menu-arrow">&#8250;</div></div><div class="menu-btn purple" onclick="showToast(t('comingSoon'))"><div class="menu-icon">&#128679;</div><div class="menu-body"><div class="menu-title" data-i18n="menuFriends">FRIENDS / QUICK MATCH</div><div class="menu-sub" data-i18n="comingSoon">Coming soon</div></div><div class="menu-arrow">&#8250;</div></div></div></div></section>
+<section class="screen" id="lobbyScreen"><div class="wrap"><div class="topbar"><div style="font-family:'Bebas Neue';letter-spacing:2px;color:var(--muted)">WHO IS THIS?</div><div class="row" style="width:auto"><button class="icon-btn" onclick="openSettings()">&#9881;&#65039;</button><button class="icon-btn hidden" id="adminIcon" onclick="openAdmin()">&#128737;&#65039;</button></div></div><div class="card user-card"><div class="user-av" id="ubAv">&#9917;</div><div><div class="user-name" id="ubName">PLAYER</div><div class="user-sub" id="ubSub"></div></div><div class="level" id="levelBadge">&#11088; LVL 1</div></div><div class="xp-info"><span id="xpLabel">0 / 100 XP</span><span id="xpNext"></span></div><div class="xp-bar"><div class="xp-fill" id="xpFill" style="width:0%"></div></div><div class="home-title">WHO IS THIS?</div><div class="home-sub">&#9917; FOOTBALLERS EDITION</div><div class="menu" style="margin-top:16px"><div class="menu-btn green" onclick="openFriends()"><div class="menu-icon">&#128101;</div><div class="menu-body"><div class="menu-title" data-i18n="friends">FRIENDS</div><div class="menu-sub" data-i18n="menuPlayFriendSub">Challenge friends to a game</div></div><div class="menu-arrow"><span id="friendReqBadge" class="hidden" style="background:var(--red);color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-family:'Bebas Neue'">0</span>&#8250;</div></div><div class="menu-btn gold" onclick="startVsAI()"><div class="menu-icon">&#129302;</div><div class="menu-body"><div class="menu-title" data-i18n="menuPlayAI">PLAY VS COMPUTER</div><div class="menu-sub" data-i18n="menuPlayAISub">Solo practice match</div></div><div class="menu-arrow">&#8250;</div></div><div class="menu-btn blue" onclick="openLeaderboard()"><div class="menu-icon">&#127885;</div><div class="menu-body"><div class="menu-title" data-i18n="menuLeader">LEADERBOARD</div><div class="menu-sub" data-i18n="menuLeaderSub">Top players by score</div></div><div class="menu-arrow">&#8250;</div></div><div class="menu-btn purple" onclick="showToast(t('comingSoon'))"><div class="menu-icon">&#128679;</div><div class="menu-body"><div class="menu-title" data-i18n="menuFriends">FRIENDS / QUICK MATCH</div><div class="menu-sub" data-i18n="comingSoon">Coming soon</div></div><div class="menu-arrow">&#8250;</div></div></div></div></section>
 
 <section class="screen" id="waitScreen"><div class="wrap"><div class="card"><div class="title" style="text-align:center" data-i18n="roomReady">ROOM READY</div><div class="modal-sub" data-i18n="shareCode">Share this code with your friend</div><div class="wait-code" id="roomCodeText" onclick="copyRoomCode()">ABC123</div><div class="players-row"><div class="p-slot"><div class="p-av fill" id="waitP1Av">&#9917;</div><div class="p-name" id="waitP1Name">You</div></div><div style="font-family:'Bebas Neue';font-size:23px;color:var(--gold)">VS</div><div class="p-slot"><div class="p-av" id="waitP2Av">?</div><div class="p-name" id="waitP2Name" data-i18n="waiting">Waiting...</div></div></div><div class="spinner" id="waitSpinner"></div><div class="wait-timeout" id="waitTimeout"></div><button class="btn btn-ghost" onclick="cancelWait()">&#8592; <span data-i18n="cancelBack">CANCEL &amp; BACK</span></button></div></div></section>
 
@@ -79,6 +92,37 @@ const app=initializeApp(firebaseConfig); const db=getFirestore(app); Object.assi
 <section class="screen" id="resultScreen"><div class="wrap"><div class="card result-card"><div class="trophy" id="resIcon">&#127942;</div><div class="title" id="resTitle">YOU WIN!</div><div class="modal-sub" id="resSub"></div><div class="reveal"><div id="myReveal"></div><div style="font-family:'Bebas Neue';font-size:22px;color:var(--gold);padding-top:24px">VS</div><div id="oppReveal"></div></div><div class="row" style="margin-top:8px"><button class="btn btn-g" id="rematchBtn" onclick="startRematch()" style="display:none">&#128260; <span data-i18n="rematch">REMATCH</span></button><button class="btn btn-ghost" onclick="backToLobby()" data-i18n="lobby">LOBBY</button></div></div></div></section>
 
 <div class="overlay" id="categoryOv"><div class="modal"><div class="modal-title" data-i18n="selectCat">&#129513; SELECT CATEGORY</div><div class="modal-sub" data-i18n="selectCatSub">24 cards per game. Choose your category.</div><div id="categoryList"></div><button class="btn btn-ghost" style="margin-top:8px" onclick="closeOv('categoryOv')" data-i18n="close">CLOSE</button></div></div>
+<div class="overlay" id="friendsOv"><div class="modal" style="max-width:420px">
+  <div class="modal-title">&#128101; <span data-i18n="friends">FRIENDS</span></div>
+  <!-- Search & Add -->
+  <div class="small-title" data-i18n="addFriend">ADD FRIEND</div>
+  <div class="custom-row" style="margin-bottom:14px">
+    <input class="input" id="friendSearchInput" data-i18n-placeholder="searchPlayer" placeholder="Search username..." maxlength="20" style="margin:0" oninput="onFriendSearch()" autocomplete="off">
+    <button class="btn btn-b custom-ask-btn" onclick="sendFriendRequest()" data-i18n="addFriend">ADD</button>
+  </div>
+  <div id="friendSearchResult" style="margin-bottom:12px"></div>
+  <!-- Friend Requests -->
+  <div id="friendRequestsSection" class="hidden">
+    <div class="small-title" data-i18n="friendRequests">FRIEND REQUESTS</div>
+    <div id="friendRequestsList" style="margin-bottom:12px"></div>
+  </div>
+  <!-- Friends List -->
+  <div class="small-title" data-i18n="friends">FRIENDS</div>
+  <div id="friendsList" style="margin-bottom:12px"><div class="modal-sub" data-i18n="noFriends">No friends yet.</div></div>
+  <button class="btn btn-ghost" onclick="closeOv('friendsOv')" data-i18n="close">CLOSE</button>
+</div></div>
+
+<!-- Incoming challenge popup -->
+<div class="overlay" id="challengeOv"><div class="modal" style="text-align:center">
+  <div style="font-size:48px">⚔️</div>
+  <div class="modal-title" id="challengeTitle">CHALLENGE!</div>
+  <div class="modal-sub" id="challengeSub"></div>
+  <div class="row" style="margin-top:14px">
+    <button class="btn btn-g" onclick="acceptChallenge()" data-i18n="accept">ACCEPT</button>
+    <button class="btn btn-r" onclick="declineChallenge()" data-i18n="decline">DECLINE</button>
+  </div>
+</div></div>
+
 <div class="overlay" id="roomOv"><div class="modal"><div class="modal-title" data-i18n="menuPlayFriend">PLAY WITH FRIEND</div><div class="modal-sub" data-i18n="roomOrJoin">Create a room or join by code</div><button class="btn btn-g" onclick="closeOv('roomOv');createRoom()" data-i18n="createRoom">CREATE ROOM</button><button class="btn btn-b" style="margin-top:8px" onclick="closeOv('roomOv');openOv('joinOv')" data-i18n="joinCode">JOIN WITH CODE</button><button class="btn btn-ghost" style="margin-top:8px" onclick="closeOv('roomOv')" data-i18n="cancel">CANCEL</button></div></div>
 <div class="overlay" id="joinOv"><div class="modal"><div class="modal-title" data-i18n="joinRoom">JOIN ROOM</div><input class="input" id="joinCodeInput" maxlength="6" placeholder="ABC123" style="text-align:center;letter-spacing:5px;font-family:'Bebas Neue';font-size:24px;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"><button class="btn btn-g" onclick="joinRoom()" data-i18n="joinGame">JOIN GAME &#8594;</button><button class="btn btn-ghost" style="margin-top:8px" onclick="closeOv('joinOv')" data-i18n="cancel">CANCEL</button></div></div>
 <div class="overlay" id="ynOv"><div class="modal"><div class="yn-q" id="ynQuestion"></div><div class="modal-sub" id="ynSub" data-i18n="answerHonestly">Answer honestly</div><div class="row"><button class="btn btn-g" onclick="answerQuestion(true)">&#9989; <span data-i18n="yes">YES</span></button><button class="btn btn-r" onclick="answerQuestion(false)">&#10060; <span data-i18n="no">NO</span></button></div></div></div>
@@ -129,6 +173,15 @@ const LOCALE={
     answered:'Answered {a}',roomCreated:'Room created',codeCopied:'Room code copied!',
     roomClosed:'Room closed \u2014 no one joined in 3 minutes',
     autoCancel:'Auto-cancels in {t}',waitingFor:'{name} (You)',
+    friends:'FRIENDS',addFriend:'ADD FRIEND',friendRequests:'FRIEND REQUESTS',
+    searchPlayer:'Search username...',challenge:'CHALLENGE',
+    challengeSent:'Challenge sent to {name}!',challengeIncoming:'{name} is challenging you!',
+    accept:'ACCEPT',decline:'DECLINE',online:'ONLINE',offline:'OFFLINE',
+    noFriends:'No friends yet. Search and add someone!',
+    friendAdded:'{name} added!',requestSent:'Friend request sent to {name}',
+    alreadyFriends:'Already friends!',userNotFound:'User not found',
+    challengeDeclined:'{name} declined your challenge',
+    challengeCancelled:'Challenge cancelled',
   },
   th:{
     multicat:'หลายหมวดหมู่',logoSub:'ทายไพ่ลับ \u2022 ตัดออก \u2022 ชนะ',
@@ -163,6 +216,15 @@ const LOCALE={
     elimBannerTap:'คำตอบ: {a} \u2014 แตะการ์ดเพื่อตัดออก แล้วกดเสร็จแล้ว',
     compAsks:'คอมถาม: "{q}" \u2192 คุณ: {a}',compSays:'คอมพิวเตอร์: {a}',
     compSaysCustom:'คอมพิวเตอร์: {a} \u2014 แตะการ์ดเพื่อตัดออก',
+    friends:'เพื่อน',addFriend:'เพิ่มเพื่อน',friendRequests:'คำขอเป็นเพื่อน',
+    searchPlayer:'ค้นหาชื่อผู้ใช้...',challenge:'ท้าแข่ง',
+    challengeSent:'ส่งคำท้าไปหา {name} แล้ว!',challengeIncoming:'{name} ท้าคุณ!',
+    accept:'ยอมรับ',decline:'ปฏิเสธ',online:'ออนไลน์',offline:'ออฟไลน์',
+    noFriends:'ยังไม่มีเพื่อน ลองค้นหาและเพิ่มคนอื่นดู!',
+    friendAdded:'เพิ่ม {name} แล้ว!',requestSent:'ส่งคำขอถึง {name} แล้ว',
+    alreadyFriends:'เป็นเพื่อนกันอยู่แล้ว!',userNotFound:'ไม่พบผู้ใช้',
+    challengeDeclined:'{name} ปฏิเสธคำท้าของคุณ',
+    challengeCancelled:'ยกเลิกคำท้าแล้ว',
     answered:'ตอบ {a} แล้ว',roomCreated:'สร้างห้องแล้ว',codeCopied:'คัดลอกโค้ดแล้ว!',
     roomClosed:'ปิดห้องแล้ว \u2014 ไม่มีคนเข้าร่วมใน 3 นาที',
     autoCancel:'ยกเลิกอัตโนมัติใน {t}',waitingFor:'{name} (คุณ)',
@@ -242,9 +304,11 @@ function resetPins(){lPin='';rPin='';dots('l','');dots('r','')}
 function switchAuth(m){resetPins();$('loginCard').classList.toggle('hidden',m!=='login');$('registerCard').classList.toggle('hidden',m!=='register')}
 function checkRegReady(){$('regBtn').disabled=!($('regName').value.trim()&&rPin.length===4&&selectedAv)}
 
-async function doRegister(){const name=$('regName').value.trim().toLowerCase();if(!name||rPin.length!==4||!selectedAv)return showToast('Fill all fields');try{const ref=window.fsDoc(window.db,'users',name);const snap=await window.fsGetDoc(ref);if(snap.exists())return showToast('Username already taken');acct={username:name,pin:rPin,avatar:selectedAv,role:'player',score:0,wins:0,losses:0,totalGames:0,xp:0,level:1,banned:false};await window.fsSetDoc(ref,{...acct,createdAt:window.fsServerTimestamp(),lastLogin:window.fsServerTimestamp()});localStorage.setItem('witSession',name);enterLobby()}catch(e){showToast('Register error: '+e.message)}}
-async function doLogin(){const name=$('loginName').value.trim().toLowerCase();if(!name)return showToast('Enter username');if(lPin.length!==4)return showToast('Enter 4-digit PIN');try{const ref=window.fsDoc(window.db,'users',name);const snap=await window.fsGetDoc(ref);if(!snap.exists()){resetPins();return showToast('Account not found')}const d=snap.data();if(d.banned)return showToast('Account banned');if(String(d.pin)!==lPin){resetPins();return showToast('Wrong PIN')}acct={...d,username:name};await window.fsUpdateDoc(ref,{lastLogin:window.fsServerTimestamp()});localStorage.setItem('witSession',name);enterLobby()}catch(e){showToast('Login error: '+e.message)}}
-function logout(){localStorage.removeItem('witSession');acct={};resetPins();closeOv('settingsOv');showScreen('authScreen')}
+async function doRegister(){const name=$('regName').value.trim().toLowerCase();if(!name||rPin.length!==4||!selectedAv)return showToast('Fill all fields');try{const ref=window.fsDoc(window.db,'users',name);const snap=await window.fsGetDoc(ref);if(snap.exists())return showToast('Username already taken');acct={username:name,pin:rPin,avatar:selectedAv,role:'player',score:0,wins:0,losses:0,totalGames:0,xp:0,level:1,banned:false,friends:[],friendRequests:[],pendingChallenge:null};await window.fsSetDoc(ref,{...acct,online:true,lastSeen:window.fsServerTimestamp(),createdAt:window.fsServerTimestamp(),lastLogin:window.fsServerTimestamp()});localStorage.setItem('witSession',name);enterLobby()}catch(e){showToast('Register error: '+e.message)}}
+async function doLogin(){const name=$('loginName').value.trim().toLowerCase();if(!name)return showToast('Enter username');if(lPin.length!==4)return showToast('Enter 4-digit PIN');try{const ref=window.fsDoc(window.db,'users',name);const snap=await window.fsGetDoc(ref);if(!snap.exists()){resetPins();return showToast('Account not found')}const d=snap.data();if(d.banned)return showToast('Account banned');if(String(d.pin)!==lPin){resetPins();return showToast('Wrong PIN')}acct={...d,username:name,friends:d.friends||[],friendRequests:d.friendRequests||[],pendingChallenge:d.pendingChallenge||null};await window.fsUpdateDoc(ref,{online:true,lastSeen:window.fsServerTimestamp(),lastLogin:window.fsServerTimestamp()});localStorage.setItem('witSession',name);enterLobby();listenMyUser()}catch(e){showToast('Login error: '+e.message)}}
+function logout(){setOffline();if(myUserUnsub){myUserUnsub();myUserUnsub=null}localStorage.removeItem('witSession');acct={};resetPins();closeOv('settingsOv');showScreen('authScreen')}
+function setOffline(){if(!acct.username)return;window.fsUpdateDoc(window.fsDoc(window.db,'users',acct.username),{online:false,lastSeen:window.fsServerTimestamp()}).catch(()=>{})}
+window.addEventListener('beforeunload',setOffline);
 function enterLobby(){updateProfile();showScreen('lobbyScreen')}
 function updateProfile(){$('ubAv').textContent=acct.avatar||'26BD';$('ubName').textContent=(acct.username||'player').toUpperCase();$('ubSub').textContent=t('levelSub',{l:acct.level||1,w:acct.wins||0});$('levelBadge').textContent=`2B50 LVL ${acct.level||1}`;$('xpLabel').textContent=`${acct.xp||0} / ${xpNeed()} XP`;$('xpNext').textContent=t('xpNext',{n:(acct.level||1)+1});$('xpFill').style.width=Math.min(100,((acct.xp||0)/xpNeed())*100)+'%';$('adminIcon').classList.toggle('hidden',(acct.role||'player')!=='admin')}
 function setTheme(t){document.body.className=t==='dark'?'':'theme-'+t;showToast('Theme '+t)}
@@ -259,11 +323,224 @@ function openRoomOptions(){openOv('roomOv')}
 function backToLobby(){clearWaitTimer();if(roomUnsub){roomUnsub();roomUnsub=null}closeAllOv();showScreen('lobbyScreen')}
 function closeAllOv(){document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('on'))}
 
+/* ── REAL-TIME LISTENER: my own user doc ── */
+let myUserUnsub=null;
+let lastChallengeKey='';
+function listenMyUser(){
+  if(myUserUnsub)myUserUnsub();
+  myUserUnsub=window.fsOnSnapshot(window.fsDoc(window.db,'users',acct.username),snap=>{
+    if(!snap.exists())return;
+    const d=snap.data();
+    acct.friends=d.friends||[];
+    acct.friendRequests=d.friendRequests||[];
+    acct.pendingChallenge=d.pendingChallenge||null;
+    // Friend request badge
+    const reqCount=acct.friendRequests.length;
+    const badge=$('friendReqBadge');
+    if(badge){badge.textContent=reqCount;badge.classList.toggle('hidden',reqCount===0)}
+    // Incoming challenge popup
+    if(acct.pendingChallenge){
+      const ch=acct.pendingChallenge;
+      const key=ch.from+'|'+ch.roomCode;
+      if(key!==lastChallengeKey){
+        lastChallengeKey=key;
+        $('challengeTitle').textContent=t('challengeIncoming',{name:ch.from});
+        $('challengeSub').textContent=ch.from+' '+t('challenge').toLowerCase()+'!';
+        openOv('challengeOv');
+      }
+    } else {
+      lastChallengeKey='';
+      closeOv('challengeOv');
+    }
+  });
+}
+
+/* ── FRIENDS PANEL ── */
+function openFriends(){renderFriendsPanel();openOv('friendsOv')}
+async function renderFriendsPanel(){
+  // Friend requests section
+  const reqs=acct.friendRequests||[];
+  const reqSec=$('friendRequestsSection');
+  if(reqs.length>0){
+    reqSec.classList.remove('hidden');
+    $('friendRequestsList').innerHTML=reqs.map(r=>`
+      <div class="req-row">
+        <div style="font-size:20px">${r.avatar||'⚽'}</div>
+        <div class="grow"><div class="friend-name">${r.from}</div></div>
+        <button class="mini-btn mini-g" onclick="acceptFriendReq('${r.from}')">${t('accept')}</button>
+        <button class="mini-btn mini-r" onclick="declineFriendReq('${r.from}')">${t('decline')}</button>
+      </div>`).join('');
+  } else {
+    reqSec.classList.add('hidden');
+  }
+  // Friends list with online status
+  const friends=acct.friends||[];
+  if(friends.length===0){
+    $('friendsList').innerHTML=`<div class="modal-sub">${t('noFriends')}</div>`;
+    return;
+  }
+  // Fetch online status for each friend
+  const rows=await Promise.all(friends.map(async fname=>{
+    try{
+      const snap=await window.fsGetDoc(window.fsDoc(window.db,'users',fname));
+      const fd=snap.data()||{};
+      const isOnline=fd.online===true;
+      const av=fd.avatar||'⚽';
+      return `<div class="friend-row">
+        <div class="friend-av ${isOnline?'online-av':''}">${av}</div>
+        <div class="grow">
+          <div class="friend-name">${fname}</div>
+          <div class="friend-status">${isOnline?t('online'):t('offline')}</div>
+        </div>
+        ${isOnline?`<button class="btn btn-y" style="width:auto;padding:8px 14px;font-size:14px" onclick="challengeFriend('${fname}')">\u2694\uFE0F ${t('challenge')}</button>`:''}
+      </div>`;
+    }catch{return '';}
+  }));
+  $('friendsList').innerHTML=rows.join('');
+}
+
+/* ── FRIEND SEARCH ── */
+let searchDebounce=null;
+function onFriendSearch(){
+  clearTimeout(searchDebounce);
+  searchDebounce=setTimeout(()=>doFriendSearch($('friendSearchInput').value.trim().toLowerCase()),400);
+}
+async function doFriendSearch(q){
+  const res=$('friendSearchResult');
+  if(!q){res.innerHTML='';return}
+  if(q===acct.username){res.innerHTML=`<div class="modal-sub" style="color:var(--orange)">That's you!</div>`;return}
+  try{
+    const snap=await window.fsGetDoc(window.fsDoc(window.db,'users',q));
+    if(!snap.exists()){res.innerHTML=`<div class="modal-sub">${t('userNotFound')}</div>`;return}
+    const fd=snap.data();
+    const isFriend=(acct.friends||[]).includes(q);
+    const hasSentReq=(fd.friendRequests||[]).some(r=>r.from===acct.username);
+    res.innerHTML=`<div class="search-result">
+      <div style="font-size:24px">${fd.avatar||'⚽'}</div>
+      <div class="grow"><div class="friend-name">${q}</div><div class="friend-status">LVL ${fd.level||1} • ${fd.wins||0}W</div></div>
+      ${isFriend?`<span style="color:var(--green);font-family:'Bebas Neue'">✓ FRIEND</span>`:
+        hasSentReq?`<span style="color:var(--muted);font-family:'Bebas Neue'">SENT</span>`:
+        `<button class="mini-btn mini-g" onclick="sendFriendRequest('${q}')">${t('addFriend')}</button>`}
+    </div>`;
+  }catch(e){res.innerHTML=`<div class="modal-sub">Error</div>`;}
+}
+async function sendFriendRequest(targetName){
+  const name=targetName||$('friendSearchInput').value.trim().toLowerCase();
+  if(!name||name===acct.username)return;
+  if((acct.friends||[]).includes(name))return showToast(t('alreadyFriends'));
+  try{
+    const ref=window.fsDoc(window.db,'users',name);
+    const snap=await window.fsGetDoc(ref);
+    if(!snap.exists())return showToast(t('userNotFound'));
+    const fd=snap.data();
+    const existing=(fd.friendRequests||[]).some(r=>r.from===acct.username);
+    if(existing)return showToast(t('requestSent',{name}));
+    const newReqs=[...(fd.friendRequests||[]),{from:acct.username,avatar:acct.avatar,ts:Date.now()}];
+    await window.fsUpdateDoc(ref,{friendRequests:newReqs});
+    showToast(t('requestSent',{name}));
+    doFriendSearch(name);
+  }catch(e){showToast('Error: '+e.message)}
+}
+async function acceptFriendReq(fromName){
+  try{
+    // Add each other to friends list
+    const myRef=window.fsDoc(window.db,'users',acct.username);
+    const theirRef=window.fsDoc(window.db,'users',fromName);
+    const newMyFriends=[...(acct.friends||[]).filter(f=>f!==fromName),fromName];
+    const newMyReqs=(acct.friendRequests||[]).filter(r=>r.from!==fromName);
+    await window.fsUpdateDoc(myRef,{friends:newMyFriends,friendRequests:newMyReqs});
+    // Add me to their friends too
+    const theirSnap=await window.fsGetDoc(theirRef);
+    const td=theirSnap.data()||{};
+    const newTheirFriends=[...(td.friends||[]).filter(f=>f!==acct.username),acct.username];
+    await window.fsUpdateDoc(theirRef,{friends:newTheirFriends});
+    acct.friends=newMyFriends;acct.friendRequests=newMyReqs;
+    showToast(t('friendAdded',{name:fromName}));
+    renderFriendsPanel();
+  }catch(e){showToast('Error: '+e.message)}
+}
+async function declineFriendReq(fromName){
+  const newReqs=(acct.friendRequests||[]).filter(r=>r.from!==fromName);
+  await window.fsUpdateDoc(window.fsDoc(window.db,'users',acct.username),{friendRequests:newReqs});
+  acct.friendRequests=newReqs;
+  renderFriendsPanel();
+}
+
+/* ── CHALLENGE FLOW ── */
+async function challengeFriend(targetName){
+  closeOv('friendsOv');
+  // Create room silently
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code='';for(let i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];
+  const board=shuffle(PLAYERS.map(p=>p.id));
+  const roomData={roomCode:code,category:activeCategory,categoryId:activeCategory,status:'waiting',
+    player1Username:acct.username,player1Avatar:acct.avatar,player2Username:null,player2Avatar:null,
+    player1SecretId:null,player2SecretId:null,boardPlayerIds:board,currentTurnUsername:null,
+    pendingQuestion:null,pendingQIndex:null,pendingQuestionBy:null,pendingAnswer:null,winnerUsername:null,
+    createdAt:window.fsServerTimestamp(),updatedAt:window.fsServerTimestamp()};
+  try{
+    await window.fsSetDoc(window.fsDoc(window.db,'rooms',code),roomData);
+    // Write challenge to target user
+    await window.fsUpdateDoc(window.fsDoc(window.db,'users',targetName),{
+      pendingChallenge:{from:acct.username,avatar:acct.avatar,roomCode:code,ts:Date.now()}
+    });
+    // Enter wait screen as host
+    G={...G,mode:'online',roomCode:code,myNum:1,oppName:targetName,board:board.map(pById),elim:[],qCount:0};
+    finishedHandled=false;lastPendingKey='';
+    $('roomCodeText').textContent=code;
+    $('waitP1Av').textContent=acct.avatar;
+    $('waitP1Name').textContent=t('waitingFor',{name:acct.username});
+    $('waitP2Av').textContent='?';$('waitP2Name').textContent=targetName;
+    $('waitSpinner').classList.remove('hidden');
+    showScreen('waitScreen');startWaitTimer();listenRoom(code);
+    showToast(t('challengeSent',{name:targetName}));
+  }catch(e){showToast('Challenge error: '+e.message)}
+}
+async function acceptChallenge(){
+  const ch=acct.pendingChallenge;
+  if(!ch)return;
+  closeOv('challengeOv');
+  // Clear pending challenge
+  await window.fsUpdateDoc(window.fsDoc(window.db,'users',acct.username),{pendingChallenge:null});
+  // Join room directly
+  try{
+    const ref=window.fsDoc(window.db,'rooms',ch.roomCode);
+    const snap=await window.fsGetDoc(ref);
+    if(!snap.exists()||snap.data().status!=='waiting')return showToast('Room no longer available');
+    await window.fsUpdateDoc(ref,{player2Username:acct.username,player2Avatar:acct.avatar,status:'picking',updatedAt:window.fsServerTimestamp()});
+    G={...G,mode:'online',roomCode:ch.roomCode,myNum:2,oppName:ch.from,board:snap.data().boardPlayerIds.map(pById),elim:[],qCount:0};
+    finishedHandled=false;lastPendingKey='';
+    startPickOnline(snap.data().boardPlayerIds);listenRoom(ch.roomCode);
+  }catch(e){showToast('Join error: '+e.message)}
+}
+async function declineChallenge(){
+  const ch=acct.pendingChallenge;
+  closeOv('challengeOv');
+  await window.fsUpdateDoc(window.fsDoc(window.db,'users',acct.username),{pendingChallenge:null});
+  if(ch){
+    // Notify challenger by closing the room
+    window.fsUpdateDoc(window.fsDoc(window.db,'rooms',ch.roomCode),{status:'closed',updatedAt:window.fsServerTimestamp()}).catch(()=>{});
+    // Also clear challenge state from challenger's perspective if possible
+    showToast(t('challengeCancelled'));
+  }
+}
+
 /* ── WAIT TIMEOUT (3 min) ── */
 function startWaitTimer(){clearWaitTimer();waitSeconds=180;updateWaitTimeout();waitTimer=setInterval(()=>{waitSeconds--;updateWaitTimeout();if(waitSeconds<=0){clearWaitTimer();cancelWait();showToast(t('roomClosed'))}},1000)}
 function clearWaitTimer(){if(waitTimer){clearInterval(waitTimer);waitTimer=null}if($('waitTimeout'))$('waitTimeout').textContent=''}
 function updateWaitTimeout(){const m=Math.floor(waitSeconds/60),s=waitSeconds%60;if($('waitTimeout'))$('waitTimeout').textContent=t('autoCancel',{t:`${m}:${String(s).padStart(2,'0')}`})}
-function cancelWait(){clearWaitTimer();if(roomUnsub){roomUnsub();roomUnsub=null}if(G.roomCode&&G.mode==='online'){window.fsUpdateDoc(window.fsDoc(window.db,'rooms',G.roomCode),{status:'closed',updatedAt:window.fsServerTimestamp()}).catch(()=>{})}backToLobby()}
+function cancelWait(){
+  clearWaitTimer();
+  if(roomUnsub){roomUnsub();roomUnsub=null}
+  // If we sent a challenge, clear it from the target
+  if(G.mode==='online'&&G.oppName&&G.myNum===1){
+    window.fsGetDoc(window.fsDoc(window.db,'users',G.oppName)).then(snap=>{
+      if(snap.exists()){const d=snap.data();if(d.pendingChallenge?.roomCode===G.roomCode){window.fsUpdateDoc(window.fsDoc(window.db,'users',G.oppName),{pendingChallenge:null}).catch(()=>{})}}
+    }).catch(()=>{});
+  }
+  if(G.roomCode&&G.mode==='online'){window.fsUpdateDoc(window.fsDoc(window.db,'rooms',G.roomCode),{status:'closed',updatedAt:window.fsServerTimestamp()}).catch(()=>{})}
+  backToLobby();
+}
 
 async function createRoom(){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let code='';for(let i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];const board=shuffle(PLAYERS.map(p=>p.id));const data={roomCode:code,category:activeCategory,categoryId:activeCategory,status:'waiting',player1Username:acct.username,player1Avatar:acct.avatar,player2Username:null,player2Avatar:null,player1SecretId:null,player2SecretId:null,boardPlayerIds:board,currentTurnUsername:null,pendingQuestion:null,pendingQIndex:null,pendingQuestionBy:null,pendingAnswer:null,winnerUsername:null,createdAt:window.fsServerTimestamp(),updatedAt:window.fsServerTimestamp()};try{await window.fsSetDoc(window.fsDoc(window.db,'rooms',code),data);G={...G,mode:'online',roomCode:code,myNum:1,oppName:'Opponent',board:board.map(pById),elim:[],qCount:0};finishedHandled=false;lastPendingKey='';$('roomCodeText').textContent=code;$('waitP1Av').textContent=acct.avatar;$('waitP1Name').textContent=t('waitingFor',{name:acct.username});$('waitP2Av').textContent='?';$('waitP2Name').textContent='Waiting...';$('waitSpinner').classList.remove('hidden');showScreen('waitScreen');startWaitTimer();listenRoom(code);showToast(t('roomCreated'))}catch(e){showToast('Create room error: '+e.message)}}
 async function joinRoom(){const code=$('joinCodeInput').value.trim().toUpperCase();if(code.length!==6)return showToast('Enter 6-character code');try{const ref=window.fsDoc(window.db,'rooms',code);const snap=await window.fsGetDoc(ref);if(!snap.exists())return showToast('Room not found');const r=snap.data();if(r.status!=='waiting')return showToast('Room not available');if(r.player1Username===acct.username)return showToast('Cannot join your own room');await window.fsUpdateDoc(ref,{player2Username:acct.username,player2Avatar:acct.avatar,status:'picking',updatedAt:window.fsServerTimestamp()});loadCategory(r.categoryId||r.category||'footballers');G={...G,mode:'online',roomCode:code,myNum:2,oppName:r.player1Username,board:r.boardPlayerIds.map(pById),elim:[],qCount:0};finishedHandled=false;lastPendingKey='';closeOv('joinOv');startPickOnline(r.boardPlayerIds);listenRoom(code)}catch(e){showToast('Join error: '+e.message)}}
@@ -289,6 +566,11 @@ function handleRoom(r){
     }
   }
   if(r.status==='finished'&&!finishedHandled){finishedHandled=true;G.oppSecret=pById(G.myNum===1?r.player2SecretId:r.player1SecretId);showResult(r.winnerUsername===acct.username,r.winnerUsername)}
+  // Room closed while waiting = challenge was declined
+  if(r.status==='closed'&&document.querySelector('.screen.active')?.id==='waitScreen'){
+    clearWaitTimer();if(roomUnsub){roomUnsub();roomUnsub=null}
+    showToast(t('challengeDeclined',{name:G.oppName||'Opponent'}));backToLobby();
+  }
 }
 
 function startPickOnline(ids){G.board=ids.map(pById).filter(Boolean);G.elim=[];G.qCount=0;pickedId=null;renderPick();showScreen('pickScreen')}
