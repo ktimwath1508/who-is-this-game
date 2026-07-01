@@ -66,7 +66,7 @@ const app=initializeApp(firebaseConfig); const db=getFirestore(app); Object.assi
 <body>
 <section class="screen active" id="authScreen"><div class="wrap"><div class="logo-badge">🧩 <span data-i18n="multicat">MULTI-CATEGORY EDITION</span></div><div class="logo-title">WHO IS<br>THIS?</div><div class="logo-sub" data-i18n="logoSub">GUESS THE SECRET CARD • ELIMINATE • WIN</div><div class="card" id="loginCard"><div class="title" style="margin-bottom:12px" data-i18n="welcomeBack">WELCOME BACK</div><div class="small-title" data-i18n="username">USERNAME</div><input class="input" id="loginName" placeholder="e.g. ton01" autocomplete="off"><div class="small-title" data-i18n="pinCode">PIN CODE</div><div class="pin-display" id="loginDots"></div><div class="pin-pad" id="loginPad"></div><button class="btn btn-g" onclick="doLogin()">&#9654; <span data-i18n="login">LOGIN</span></button><div class="switch"><span data-i18n="noAccount">No account?</span> <span onclick="switchAuth('register')" data-i18n="registerHere">REGISTER HERE</span></div></div><div class="card hidden" id="registerCard"><div class="title" style="margin-bottom:12px" data-i18n="createAccount">CREATE ACCOUNT</div><div class="small-title" data-i18n="pickIcon">PICK ICON</div><div class="avatar-grid" id="regAvGrid"></div><div class="small-title" data-i18n="username">USERNAME</div><input class="input" id="regName" data-i18n-placeholder="usernamePlaceholder" placeholder="Choose username" maxlength="16" oninput="checkRegReady()"><div class="small-title" data-i18n="setPin">SET 4-DIGIT PIN</div><div class="pin-display" id="regDots"></div><div class="pin-pad" id="regPad"></div><button class="btn btn-g" id="regBtn" onclick="doRegister()" disabled><span data-i18n="createAccount">CREATE ACCOUNT</span> &#8594;</button><div class="switch"><span data-i18n="haveAccount">Have account?</span> <span onclick="switchAuth('login')" data-i18n="loginHere">LOGIN HERE</span></div></div></div></section>
 
-<section class="screen" id="lobbyScreen"><div class="wrap"><div class="topbar"><div style="font-family:'Bebas Neue';letter-spacing:2px;color:var(--muted)">WHO IS THIS?</div><div class="row" style="width:auto"><button class="icon-btn" onclick="openSettings()">&#9881;&#65039;</button><button class="icon-btn hidden" id="adminIcon" onclick="openAdmin()">&#128737;&#65039;</button></div></div><div class="card user-card"><div class="user-av" id="ubAv">&#9917;</div><div><div class="user-name" id="ubName">PLAYER</div><div class="user-sub" id="ubSub"></div></div><div class="level" id="levelBadge">&#11088; LVL 1</div></div><div class="xp-info"><span id="xpLabel">0 / 100 XP</span><span id="xpNext"></span></div><div class="xp-bar"><div class="xp-fill" id="xpFill" style="width:0%"></div></div><div class="home-title">WHO IS THIS?</div><div class="home-sub">&#9917; FOOTBALLERS EDITION</div><div class="menu" style="margin-top:16px"><div class="menu-btn green" onclick="openFriends()"><div class="menu-icon">&#128101;</div><div class="menu-body"><div class="menu-title" data-i18n="friends">FRIENDS</div><div class="menu-sub" data-i18n="menuPlayFriendSub">Challenge friends to a game</div></div><div class="menu-arrow"><span id="friendReqBadge" class="hidden" style="background:var(--red);color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-family:'Bebas Neue'">0</span>&#8250;</div></div><div class="menu-btn gold" onclick="startVsAI()"><div class="menu-icon">&#129302;</div><div class="menu-body"><div class="menu-title" data-i18n="menuPlayAI">PLAY VS COMPUTER</div><div class="menu-sub" data-i18n="menuPlayAISub">Solo practice match</div></div><div class="menu-arrow">&#8250;</div></div><div class="menu-btn blue" onclick="openLeaderboard()"><div class="menu-icon">&#127885;</div><div class="menu-body"><div class="menu-title" data-i18n="menuLeader">LEADERBOARD</div><div class="menu-sub" data-i18n="menuLeaderSub">Top players by score</div></div><div class="menu-arrow">&#8250;</div></div><div class="menu-btn purple" onclick="showToast(t('comingSoon'))"><div class="menu-icon">&#128679;</div><div class="menu-body"><div class="menu-title" data-i18n="menuFriends">FRIENDS / QUICK MATCH</div><div class="menu-sub" data-i18n="comingSoon">Coming soon</div></div><div class="menu-arrow">&#8250;</div></div></div></div></section>
+<section class="screen" id="lobbyScreen"><div class="wrap"><div class="topbar"><div style="font-family:'Bebas Neue';letter-spacing:2px;color:var(--muted)">WHO IS THIS?</div><div class="row" style="width:auto"><button class="icon-btn" onclick="openSettings()">&#9881;&#65039;</button><button class="icon-btn hidden" id="adminIcon" onclick="openAdmin()">&#128737;&#65039;</button></div></div><div class="card user-card"><div class="user-av" id="ubAv">&#9917;</div><div><div class="user-name" id="ubName">PLAYER</div><div class="user-sub" id="ubSub"></div></div><div class="level" id="levelBadge">&#11088; LVL 1</div></div><div class="xp-info"><span id="xpLabel">0 / 100 XP</span><span id="xpNext"></span></div><div class="xp-bar"><div class="xp-fill" id="xpFill" style="width:0%"></div></div><div class="home-title">WHO IS THIS?</div><div class="home-sub">&#9917; FOOTBALLERS EDITION</div><div style="text-align:center;margin-bottom:4px"><button class="btn btn-ghost" style="width:auto;padding:7px 18px;font-size:14px;display:inline-flex;margin-top:6px" onclick="shareMyProfile()">&#128279; <span data-i18n="shareProfile">SHARE PROFILE</span></button></div><div class="menu" style="margin-top:16px"><div class="menu-btn green" onclick="openFriends()"><div class="menu-icon">&#128101;</div><div class="menu-body"><div class="menu-title" data-i18n="friends">FRIENDS</div><div class="menu-sub" data-i18n="menuPlayFriendSub">Challenge friends to a game</div></div><div class="menu-arrow"><span id="friendReqBadge" class="hidden" style="background:var(--red);color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-family:'Bebas Neue'">0</span>&#8250;</div></div><div class="menu-btn gold" onclick="startVsAI()"><div class="menu-icon">&#129302;</div><div class="menu-body"><div class="menu-title" data-i18n="menuPlayAI">PLAY VS COMPUTER</div><div class="menu-sub" data-i18n="menuPlayAISub">Solo practice match</div></div><div class="menu-arrow">&#8250;</div></div><div class="menu-btn blue" onclick="openLeaderboard()"><div class="menu-icon">&#127885;</div><div class="menu-body"><div class="menu-title" data-i18n="menuLeader">LEADERBOARD</div><div class="menu-sub" data-i18n="menuLeaderSub">Top players by score</div></div><div class="menu-arrow">&#8250;</div></div></div></div></section>
 
 <section class="screen" id="waitScreen"><div class="wrap"><div class="card"><div class="title" style="text-align:center" data-i18n="roomReady">ROOM READY</div><div class="modal-sub" data-i18n="shareCode">Share this code with your friend</div><div class="wait-code" id="roomCodeText" onclick="copyRoomCode()">ABC123</div><div class="players-row"><div class="p-slot"><div class="p-av fill" id="waitP1Av">&#9917;</div><div class="p-name" id="waitP1Name">You</div></div><div style="font-family:'Bebas Neue';font-size:23px;color:var(--gold)">VS</div><div class="p-slot"><div class="p-av" id="waitP2Av">?</div><div class="p-name" id="waitP2Name" data-i18n="waiting">Waiting...</div></div></div><div class="spinner" id="waitSpinner"></div><div class="wait-timeout" id="waitTimeout"></div><button class="btn btn-ghost" onclick="cancelWait()">&#8592; <span data-i18n="cancelBack">CANCEL &amp; BACK</span></button></div></div></section>
 
@@ -92,6 +92,17 @@ const app=initializeApp(firebaseConfig); const db=getFirestore(app); Object.assi
 <section class="screen" id="resultScreen"><div class="wrap"><div class="card result-card"><div class="trophy" id="resIcon">&#127942;</div><div class="title" id="resTitle">YOU WIN!</div><div class="modal-sub" id="resSub"></div><div class="reveal"><div id="myReveal"></div><div style="font-family:'Bebas Neue';font-size:22px;color:var(--gold);padding-top:24px">VS</div><div id="oppReveal"></div></div><div class="row" style="margin-top:8px"><button class="btn btn-g" id="rematchBtn" onclick="startRematch()" style="display:none">&#128260; <span data-i18n="rematch">REMATCH</span></button><button class="btn btn-ghost" onclick="backToLobby()" data-i18n="lobby">LOBBY</button></div></div></div></section>
 
 <div class="overlay" id="categoryOv"><div class="modal"><div class="modal-title" data-i18n="selectCat">&#129513; SELECT CATEGORY</div><div class="modal-sub" data-i18n="selectCatSub">24 cards per game. Choose your category.</div><div id="categoryList"></div><button class="btn btn-ghost" style="margin-top:8px" onclick="closeOv('categoryOv')" data-i18n="close">CLOSE</button></div></div>
+<!-- Deep link: add friend confirm -->
+<div class="overlay" id="deepLinkOv"><div class="modal" style="text-align:center">
+  <div style="font-size:44px">👋</div>
+  <div class="modal-title" id="deepLinkName"></div>
+  <div class="modal-sub" id="deepLinkPrompt"></div>
+  <div class="row" style="margin-top:14px">
+    <button class="btn btn-g" onclick="sendFriendRequest($('deepLinkName').textContent);closeOv('deepLinkOv')" data-i18n="addFriend">ADD FRIEND</button>
+    <button class="btn btn-ghost" onclick="closeOv('deepLinkOv')" data-i18n="cancel">CANCEL</button>
+  </div>
+</div></div>
+
 <div class="overlay" id="friendsOv"><div class="modal" style="max-width:420px">
   <div class="modal-title">&#128101; <span data-i18n="friends">FRIENDS</span></div>
   <!-- Search & Add -->
@@ -173,6 +184,7 @@ const LOCALE={
     answered:'Answered {a}',roomCreated:'Room created',codeCopied:'Room code copied!',
     roomClosed:'Room closed \u2014 no one joined in 3 minutes',
     autoCancel:'Auto-cancels in {t}',waitingFor:'{name} (You)',
+    shareProfile:'SHARE PROFILE',addFriendPrompt:'Add {name} as friend?',profileLink:'Profile link copied!',
     friends:'FRIENDS',addFriend:'ADD FRIEND',friendRequests:'FRIEND REQUESTS',
     searchPlayer:'Search username...',challenge:'CHALLENGE',
     challengeSent:'Challenge sent to {name}!',challengeIncoming:'{name} is challenging you!',
@@ -228,6 +240,7 @@ const LOCALE={
     answered:'ตอบ {a} แล้ว',roomCreated:'สร้างห้องแล้ว',codeCopied:'คัดลอกโค้ดแล้ว!',
     roomClosed:'ปิดห้องแล้ว \u2014 ไม่มีคนเข้าร่วมใน 3 นาที',
     autoCancel:'ยกเลิกอัตโนมัติใน {t}',waitingFor:'{name} (คุณ)',
+    shareProfile:'แชร์โปรไฟล์',addFriendPrompt:'เพิ่ม {name} เป็นเพื่อน?',profileLink:'คัดลอกลิงค์แล้ว!',
   }
 };
 let lang=localStorage.getItem('witLang')||'en';
@@ -293,7 +306,44 @@ function initials(p,sz=42){if(p.img){return `<div class="avatar-player" style="w
 function xpNeed(){return (acct.level||1)*100}
 function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
 
-function init(){buildPads();buildAvatars();renderCategoryState();setupKeyboardShortcuts();applyLocale();const s=localStorage.getItem('witSession');if(s)$('loginName').value=s}
+function init(){
+  buildPads();buildAvatars();renderCategoryState();setupKeyboardShortcuts();applyLocale();
+  const s=localStorage.getItem('witSession');
+  if(s)$('loginName').value=s;
+  // Handle ?addFriend=username deep link
+  checkDeepLink();
+}
+
+function checkDeepLink(){
+  const params=new URLSearchParams(window.location.search);
+  const addTarget=params.get('addFriend');
+  if(!addTarget)return;
+  // Store for after login
+  sessionStorage.setItem('pendingAddFriend',addTarget);
+  // Clean URL
+  window.history.replaceState({},'',window.location.pathname);
+}
+
+function handlePendingDeepLink(){
+  const target=sessionStorage.getItem('pendingAddFriend');
+  if(!target){return}
+  sessionStorage.removeItem('pendingAddFriend');
+  if(target===acct.username)return;
+  // Show add friend confirm popup
+  $('deepLinkName').textContent=target;
+  $('deepLinkPrompt').textContent=t('addFriendPrompt',{name:target});
+  openOv('deepLinkOv');
+}
+
+function shareMyProfile(){
+  const url=window.location.origin+window.location.pathname+'?addFriend='+encodeURIComponent(acct.username);
+  if(navigator.share){
+    navigator.share({title:'Who Is This? — Play with me!',text:`Add me on Who Is This! My username: ${acct.username}`,url});
+  } else {
+    navigator.clipboard?.writeText(url);
+    showToast(t('profileLink'));
+  }
+}
 function buildPads(){['login','reg'].forEach(kind=>{const dot=$(kind+'Dots'),pad=$(kind+'Pad');dot.innerHTML=[0,1,2,3].map(i=>`<div class="pin-dot" id="${kind[0]}p${i}"></div>`).join('');pad.innerHTML=[1,2,3,4,5,6,7,8,9,'',0,'&#8592;'].map(x=>x===''?'<div></div>':`<button class="pin-btn ${x==='&#8592;'?'pin-del':''}" onclick="${x==='&#8592;'?`pinDel('${kind[0]}')`:`pinPress('${kind[0]}','${x}')`}">${x}</button>`).join('')})}
 function buildAvatars(){$('regAvGrid').innerHTML=AVATARS.map((a,i)=>`<button class="av" id="av${i}" onclick="pickAv('${a}',${i})">${a}</button>`).join('')}
 function pickAv(a,i){selectedAv=a;document.querySelectorAll('.av').forEach(b=>b.classList.remove('sel'));$('av'+i).classList.add('sel');checkRegReady()}
@@ -305,11 +355,11 @@ function switchAuth(m){resetPins();$('loginCard').classList.toggle('hidden',m!==
 function checkRegReady(){$('regBtn').disabled=!($('regName').value.trim()&&rPin.length===4&&selectedAv)}
 
 async function doRegister(){const name=$('regName').value.trim().toLowerCase();if(!name||rPin.length!==4||!selectedAv)return showToast('Fill all fields');try{const ref=window.fsDoc(window.db,'users',name);const snap=await window.fsGetDoc(ref);if(snap.exists())return showToast('Username already taken');acct={username:name,pin:rPin,avatar:selectedAv,role:'player',score:0,wins:0,losses:0,totalGames:0,xp:0,level:1,banned:false,friends:[],friendRequests:[],pendingChallenge:null};await window.fsSetDoc(ref,{...acct,online:true,lastSeen:window.fsServerTimestamp(),createdAt:window.fsServerTimestamp(),lastLogin:window.fsServerTimestamp()});localStorage.setItem('witSession',name);enterLobby()}catch(e){showToast('Register error: '+e.message)}}
-async function doLogin(){const name=$('loginName').value.trim().toLowerCase();if(!name)return showToast('Enter username');if(lPin.length!==4)return showToast('Enter 4-digit PIN');try{const ref=window.fsDoc(window.db,'users',name);const snap=await window.fsGetDoc(ref);if(!snap.exists()){resetPins();return showToast('Account not found')}const d=snap.data();if(d.banned)return showToast('Account banned');if(String(d.pin)!==lPin){resetPins();return showToast('Wrong PIN')}acct={...d,username:name,friends:d.friends||[],friendRequests:d.friendRequests||[],pendingChallenge:d.pendingChallenge||null};await window.fsUpdateDoc(ref,{online:true,lastSeen:window.fsServerTimestamp(),lastLogin:window.fsServerTimestamp()});localStorage.setItem('witSession',name);enterLobby();listenMyUser()}catch(e){showToast('Login error: '+e.message)}}
+async function doLogin(){const name=$('loginName').value.trim().toLowerCase();if(!name)return showToast('Enter username');if(lPin.length!==4)return showToast('Enter 4-digit PIN');try{const ref=window.fsDoc(window.db,'users',name);const snap=await window.fsGetDoc(ref);if(!snap.exists()){resetPins();return showToast('Account not found')}const d=snap.data();if(d.banned)return showToast('Account banned');if(String(d.pin)!==lPin){resetPins();return showToast('Wrong PIN')}acct={...d,username:name,friends:d.friends||[],friendRequests:d.friendRequests||[],pendingChallenge:d.pendingChallenge||null};await window.fsUpdateDoc(ref,{online:true,lastSeen:window.fsServerTimestamp(),lastLogin:window.fsServerTimestamp()});localStorage.setItem('witSession',name);enterLobby()}catch(e){showToast('Login error: '+e.message)}}
 function logout(){setOffline();if(myUserUnsub){myUserUnsub();myUserUnsub=null}localStorage.removeItem('witSession');acct={};resetPins();closeOv('settingsOv');showScreen('authScreen')}
 function setOffline(){if(!acct.username)return;window.fsUpdateDoc(window.fsDoc(window.db,'users',acct.username),{online:false,lastSeen:window.fsServerTimestamp()}).catch(()=>{})}
 window.addEventListener('beforeunload',setOffline);
-function enterLobby(){updateProfile();showScreen('lobbyScreen')}
+function enterLobby(){updateProfile();showScreen('lobbyScreen');listenMyUser();handlePendingDeepLink()}
 function updateProfile(){$('ubAv').textContent=acct.avatar||'26BD';$('ubName').textContent=(acct.username||'player').toUpperCase();$('ubSub').textContent=t('levelSub',{l:acct.level||1,w:acct.wins||0});$('levelBadge').textContent=`2B50 LVL ${acct.level||1}`;$('xpLabel').textContent=`${acct.xp||0} / ${xpNeed()} XP`;$('xpNext').textContent=t('xpNext',{n:(acct.level||1)+1});$('xpFill').style.width=Math.min(100,((acct.xp||0)/xpNeed())*100)+'%';$('adminIcon').classList.toggle('hidden',(acct.role||'player')!=='admin')}
 function setTheme(t){document.body.className=t==='dark'?'':'theme-'+t;showToast('Theme '+t)}
 function openSettings(){openOv('settingsOv')}
@@ -741,7 +791,36 @@ function startRematch(){
   else{backToLobby();setTimeout(()=>openRoomOptions(),400)}
 }
 
-async function openLeaderboard(){openOv('leaderOv');$('leaderContent').innerHTML='<div class="modal-sub">Loading...</div>';try{const q=window.fsQuery(window.fsCollection(window.db,'users'),window.fsOrderBy('score','desc'),window.fsLimit(20));const snaps=await window.fsGetDocs(q);let i=0;$('leaderContent').innerHTML=snaps.docs.map(d=>{const u=d.data();i++;return `<div class="leader-row"><div class="rank">${i}</div><div style="font-size:22px">${u.avatar||'\u26BD'}</div><div class="grow"><div class="user-name" style="font-size:16px">${d.id}</div><div class="muted">${u.wins||0}W / ${u.losses||0}L \u2022 LVL ${u.level||1}</div></div><div class="score-num">${u.score||0}</div></div>`}).join('')||'<div class="modal-sub">No players yet</div>'}catch(e){$('leaderContent').innerHTML='<div class="modal-sub">Leaderboard error</div>'}}
+async function openLeaderboard(){
+  openOv('leaderOv');
+  $('leaderContent').innerHTML='<div class="modal-sub">Loading...</div>';
+  try{
+    const q=window.fsQuery(window.fsCollection(window.db,'users'),window.fsOrderBy('score','desc'),window.fsLimit(20));
+    const snaps=await window.fsGetDocs(q);
+    let i=0;
+    $('leaderContent').innerHTML=snaps.docs.map(d=>{
+      const u=d.data(); i++;
+      const isMe=d.id===acct.username;
+      const isFriend=(acct.friends||[]).includes(d.id);
+      const addBtn=isMe?''
+        :isFriend?`<span style="color:var(--green);font-family:'Bebas Neue';font-size:13px">✓ ${t('friends')}</span>`
+        :`<button class="mini" onclick="sendFriendRequest('${d.id}');this.textContent=t('requestSent',{name:''})" style="white-space:nowrap">+${t('addFriend')}</button>`;
+      const onlineDot=u.online?`<span class="online-dot" style="display:inline-block;width:8px;height:8px;margin-right:4px"></span>`:'';
+      return `<div class="leader-row">
+        <div class="rank">${i}</div>
+        <div style="font-size:22px">${u.avatar||'⚽'}</div>
+        <div class="grow">
+          <div class="user-name" style="font-size:16px">${onlineDot}${d.id}${isMe?' ★':''}</div>
+          <div class="muted">${u.wins||0}W / ${u.losses||0}L • LVL ${u.level||1}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="score-num">${u.score||0}</div>
+          ${addBtn}
+        </div>
+      </div>`;
+    }).join('')||'<div class="modal-sub">No players yet</div>'
+  }catch(e){$('leaderContent').innerHTML='<div class="modal-sub">Leaderboard error</div>'}
+}
 
 function openAdmin(){openOv('adminOv');loadAdminUsers()}
 async function loadAdminUsers(){if(acct.role!=='admin')return;$('adminContent').innerHTML='<div class="modal-sub">Loading users...</div>';const snaps=await window.fsGetDocs(window.fsCollection(window.db,'users'));$('adminContent').innerHTML=snaps.docs.map(d=>{const u=d.data();return `<div class="admin-row"><div style="font-size:22px">${u.avatar||'\u26BD'}</div><div class="grow"><div class="user-name" style="font-size:15px">${d.id}</div><div class="muted">PIN ${u.pin} \u2022 score ${u.score||0} \u2022 ${u.banned?'BANNED':'active'}</div></div><div class="admin-actions"><button class="mini" onclick="adminResetPin('${d.id}')">PIN 0000</button><button class="mini" onclick="adminToggleBan('${d.id}',${!!u.banned})">${u.banned?'UNBAN':'BAN'}</button><button class="mini" onclick="adminResetScore('${d.id}')">RESET</button></div></div>`}).join('')}
